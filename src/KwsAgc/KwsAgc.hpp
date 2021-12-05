@@ -22,19 +22,19 @@ public:
 
     void Call(int16_t * inp_data, uint32_t inp_len, int16_t ** outp_data, uint32_t * outp_len, uint32_t rate=16000)
     {
-        float * inp_flp;
+        float * outp_flp;
         uint32_t inp_flp_len = inp_len;
         *outp_len = inp_len;
-        inp_flp = (float*)malloc(inp_len * sizeof(float));
+        outp_flp = (float*)malloc(inp_len * sizeof(float));
         *outp_data = (int16_t*)malloc(inp_len * sizeof(int16_t));
-        if(!inp_flp && !(*outp_data))
+        if(!outp_flp && !(*outp_data))
         {
             std::cout << "couldn't allocate memory, aborting..." << std::endl;
             return;
         }
         for(uint32_t it = 0; it < inp_len; it++)
         {
-            inp_flp[it] = (float)inp_data[it] / (float)INT16_MAX;
+            outp_flp[it] = (float)inp_data[it] / (float )INT16_MAX;
         }
         uint32_t win_size = (uint32_t)((float)rate / 1000.0f * this->params->win_size);
         float mu_s = this->params->mu_s;
@@ -49,7 +49,7 @@ public:
             w.resize(win_size);
             for (uint32_t it = 0; it < win_size; it++)
             {
-                w[it] = inp_flp[s + it];
+                w[it] = outp_flp[s + it];
             }
             float l = 0;
             for (uint32_t it = 0; it < win_size; it++)
@@ -100,14 +100,14 @@ public:
             }
             for (uint32_t it = s; it < e; it++)
             {
-                inp_flp[it] *= gain;
+                outp_flp[it] *= gain;
             }
         }
 
         for(uint32_t it = 0; it < *outp_len; it++)
         {
-            (*outp_data)[it] = (int16_t)(inp_flp[it] * (float)INT16_MAX);
+            (*outp_data)[it] = (int16_t)(outp_flp[it] * (float)INT16_MAX);
         }
-        free(inp_flp);
+        free(outp_flp);
     }
 };

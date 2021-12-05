@@ -60,6 +60,36 @@ std::array<std::string, 2> parse_arguments(int argc, char *argv[])
   std::array<std::string, 2> ret {input_file, output_file};
   return ret;
 }
+void printOutput(int16_t *outp_data, uint32_t outp_len)
+{
+  std::cout << "output data: " << std::endl;
+
+  for(uint32_t it = 0; it < outp_len; it++)
+  {
+    std::cout << "out["<< it << "] = " << outp_data[it] << std::endl;
+  }
+
+}
+bool assertOutput(int16_t *outp_data, uint32_t outp_len, int16_t *golden_data, uint32_t golden_len)
+{
+
+  for(uint32_t it = 0; it < outp_len; it++)
+  {
+    if(outp_data[it] != golden_data[it])
+    {
+      if (abs(outp_data[it] - golden_data[it]) > 1.1f)
+      {
+        std::cout << "iteration: " << it << " expected: " << golden_data[it] << " received: " << outp_data[it]<<std::endl;
+      }
+      else
+      {
+        std::cout << "quant diff: " << abs(outp_data[it] - golden_data[it]) << std::endl;
+      }
+      return false;
+    }
+  }
+  return true;
+}
 int main(int argc, char *argv[]) {
 
   std::array<std::string, 2> filepaths;
@@ -73,41 +103,17 @@ int main(int argc, char *argv[]) {
   uint32_t inp_len;
   uint32_t golden_len;
   uint32_t outp_len;
+
   parseInt16DataFile(filepath + filepaths[0], &inp_data, &inp_len);
   parseInt16DataFile(filepath + filepaths[1], &golden_data, &golden_len);
 
-
-  std:: cout << inp_len << std::endl << golden_len << std::endl;
   KwsAgc agc{ new KwsAgcParams() };
-
-  std::cout << "agc.params.sigma_s: "<< agc.params->sigma_s << std::endl;
 
   agc.Call(inp_data, inp_len, &outp_data, &outp_len);
 
-  std::cout << "output data: " << std::endl;
-
-  for(uint32_t it = 0; it < outp_len; it++)
-  {
-    std::cout << "out["<< it << "] = " << outp_data[it] << std::endl;
-  }
-  for(uint32_t it = 0; it < outp_len; it++)
-  {
-    if(outp_data[it] != golden_data[it])
-    {
-      std::cout << "FAILED!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-      if (abs(outp_data[it] - golden_data[it]) > 1.1f)
-      {
-        std::cout << "iteration: " << it << " expected: " << golden_data[it] << " received: " << outp_data[it]<<std::endl;
-      }
-      else
-      {
-        std::cout << "quant diff: " << abs(outp_data[it] - golden_data[it]) << std::endl;
-      }
-      //break;
-    }
-  }
-
-
+  //printOutput(outp_data, outp_len);
+  
+  std::cout <<  (assertOutput(outp_data, outp_len, golden_data, golden_len) ? "PASSED": "FAILED") << std::endl;
   
   free(inp_data);
   free(outp_data);
