@@ -45,6 +45,7 @@ time taken for 100 repeats: 168.329ms
 
 
 FAILED in NEON variant happens because of agressive float-point optimizations
+
 verbosed output shows exact difference in values:
 
 iteration: 43458 expected: 14184 received: 14183
